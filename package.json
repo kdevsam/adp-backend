@@ -1,0 +1,19 @@
+{
+  "name": "adp-backend",
+  "version": "1.0.0",
+  "description": "ADP Innovation Labs Pre-Interview Assignment",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Samer Kozrosh",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^3.2.6"
+  },
+  "devDependencies": {
+    "jest": "^28.1.1"
+  }
+}
