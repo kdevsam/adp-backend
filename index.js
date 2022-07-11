@@ -20,16 +20,19 @@ import fetch from "node-fetch";
 
 async function main() {
   // (GET)
-  let data = await getData();
-  //console.log(data);
+  const data = await getData();
 
   // takes the data and returns an array with [maxAmount, maxEmployeeID]
   // Note: could have stored maxEmployeeID alone but having the total value could have been useful
-  let maxEmployee = processHighestEarner(data.transactions);
+  const maxEmployee = processHighestEarner(data.transactions);
   //console.log(maxEmployee);
 
   // takes the maxEmployee and transactions and to find the transactions for the previous year of type alpha
-  let alphaTransactions = getAlphaTxns(data.id, data.transactions, maxEmployee);
+  const alphaTransactions = getAlphaTxns(
+    data.id,
+    data.transactions,
+    maxEmployee
+  );
   //console.log(alphaTransactions);
 
   // (POST)
@@ -57,30 +60,23 @@ async function getData() {
  */
 function processHighestEarner(txns) {
   // Get last year as an integer
-  let targetYear = new Date().getFullYear() - 1;
+  const targetYear = new Date().getFullYear() - 1;
   // Employee set that will contain the id and total sum spent by employees
-  let employees = new Map();
-
-  //Loop through all txns
-  for (let i = 0; i < txns.length; i++) {
-    // Get the timeStamp attribute and convert it to an integer year
-    let year = new Date(txns[i].timeStamp).getFullYear();
-    // Filter Only target year(2021)
-    if (year === targetYear) {
-      let employee = txns[i].employee;
-      let amount = txns[i].amount;
-
-      if (!employees.has(employee.id)) {
-        employees.set(employee.id, amount);
+  const employees = new Map();
+  // Filter the transactions by year and add the employee id and the amount to the employees map above
+  const filteredTxns = txns.filter((val) => {
+    if (targetYear === new Date(val.timeStamp).getFullYear()) {
+      if (!employees.has(val.employee.id)) {
+        employees.set(val.employee.id, val.amount);
       } else {
-        let prevAmount = employees.get(employee.id);
-        employees.set(employee.id, prevAmount + amount);
+        const prevAmount = employees.get(val.employee.id);
+        employees.set(val.employee.id, prevAmount + val.amount);
       }
     }
-  }
-  // call helper function
+  });
+
   // returns [maxAmount, maxEmployeeID]
-  let maxEmployee = findMax(employees);
+  const maxEmployee = findMax(employees);
   return maxEmployee;
 }
 
@@ -114,30 +110,20 @@ function findMax(employees) {
  * for the previous year that are of type alpha
  */
 function getAlphaTxns(id, txns, maxEmployee) {
-  let alphas = {
-    id,
-    result: [],
-  };
-
-  let targetEmployeeID = maxEmployee[1];
+  const targetEmployeeID = maxEmployee[1];
   // Get last year as an integer
-  let targetYear = new Date().getFullYear() - 1;
-  //Loop through all txns
-  for (let i = 0; i < txns.length; i++) {
-    // Get the timeStamp attribute and convert it to an integer year
-    let year = new Date(txns[i].timeStamp).getFullYear();
+  const targetYear = new Date().getFullYear() - 1;
+  //Loop through all txns and only select those that have target year and target employeeid and type alpha
+  const filteredTxns = txns.filter(
+    (val) =>
+      targetYear === new Date(val.timeStamp).getFullYear() &&
+      targetEmployeeID === val.employee.id &&
+      val.type === "alpha"
+  );
+  // this will return just the transactions id array
+  const result = filteredTxns.map((val) => val.transactionID);
 
-    if (year === targetYear) {
-      let employee = txns[i].employee;
-      let type = txns[i].type;
-
-      if (employee.id === targetEmployeeID && type === "alpha") {
-        let txID = txns[i].transactionID;
-        alphas.result.push(txID);
-      }
-    }
-  }
-  return alphas;
+  return { id, result };
 }
 
 /**
